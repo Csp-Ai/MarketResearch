@@ -43,7 +43,7 @@ export default function Sidebar({ onLogout }: { onLogout?: () => void }) {
       }`}>
         <div className="mb-10 flex items-center space-x-2">
           <img src="https://zndjecytemrxgvddwbfx.supabase.co/storage/v1/object/public/assets//CheersMaitLogo.png" alt="Logo" className="h-10 w-10 rounded object-cover" />
-          <span className="font-bold text-xl text-blue-800">AI Workforce Hub</span>
+          <span className="font-bold text-xl text-blue-800">My AI Team</span>
         </div>
         <nav className="flex-1 space-y-2">
           {navItems.map((item) => (
