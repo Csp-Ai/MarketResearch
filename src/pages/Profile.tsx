@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Sidebar from '../components/shared/Sidebar';
-import Footer from '../components/layout/Footer';
 import { useAuth } from '../hooks/useAuth';
 import { Edit, Save, X, User, Mail, Calendar, Shield } from 'lucide-react';
 
@@ -220,7 +219,6 @@ export default function Profile() {
             </div>
           </div>
         </div>
-        <Footer />
       </div>
     </div>
   );

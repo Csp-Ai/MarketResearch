@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/shared/Sidebar';
-import Footer from '../components/layout/Footer';
 import { useAuth } from '../hooks/useAuth';
 import { useBusinessData } from '../hooks/useBusinessData';
 import { useChatbots } from '../hooks/useChatbots';

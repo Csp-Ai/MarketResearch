@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
 import { Target, ArrowRight } from 'lucide-react';
-import { useAnalysis } from '../../hooks/useAnalysis';
 
 interface AnalysisFormProps {
+  isAnalyzing: boolean;
+  currentStep: string;
+  analysisLog: string[];
+  error: string | null;
+  startAnalysis: (url: string) => Promise<void>;
   onAnalysisComplete?: (result: any) => void;
 }
 
-export default function AnalysisForm({ onAnalysisComplete }: AnalysisFormProps) {
+export default function AnalysisForm({ 
+  isAnalyzing, 
+  currentStep, 
+  analysisLog, 
+  error, 
+  startAnalysis 
+}: AnalysisFormProps) {
   const [url, setUrl] = useState('');
-  const { isAnalyzing, currentStep, analysisLog, error, startAnalysis } = useAnalysis();
 
   const handleStartAnalysis = async () => {
     if (url) {

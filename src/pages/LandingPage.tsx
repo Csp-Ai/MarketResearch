@@ -8,7 +8,7 @@ import AgentCards from '../components/landing/AgentCards';
 import { useAnalysis } from '../hooks/useAnalysis';
 
 export default function LandingPage() {
-  const { scrapingResult } = useAnalysis();
+  const { scrapingResult, isAnalyzing, currentStep, analysisLog, error, startAnalysis } = useAnalysis();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-200 via-blue-100 to-white">
@@ -20,7 +20,13 @@ export default function LandingPage() {
         
         {/* Analysis Form Section */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <AnalysisForm />
+          <AnalysisForm 
+            isAnalyzing={isAnalyzing}
+            currentStep={currentStep}
+            analysisLog={analysisLog}
+            error={error}
+            startAnalysis={startAnalysis}
+          />
         </section>
         
         {/* Results Section */}
