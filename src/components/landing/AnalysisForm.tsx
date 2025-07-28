@@ -6,6 +6,8 @@ interface AnalysisFormProps {
   currentStep: string;
   analysisLog: string[];
   error: string | null;
+  scrapedContent: string;
+  showScrapedContent: boolean;
   startAnalysis: (url: string) => Promise<void>;
   onAnalysisComplete?: (result: any) => void;
 }
@@ -15,6 +17,8 @@ export default function AnalysisForm({
   currentStep, 
   analysisLog, 
   error, 
+  scrapedContent,
+  showScrapedContent,
   startAnalysis 
 }: AnalysisFormProps) {
   const [url, setUrl] = useState('');
@@ -107,6 +111,28 @@ export default function AnalysisForm({
                 {logEntry}
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Scraped Content Display */}
+      {isAnalyzing && showScrapedContent && scrapedContent && (
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 mb-6">
+          <div className="flex items-center justify-between text-gray-100 mb-3">
+            <div className="flex items-center space-x-3">
+              <div className="animate-pulse flex space-x-1">
+                <div className="h-3 w-3 bg-white rounded-full animate-bounce"></div>
+                <div className="h-3 w-3 bg-white rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                <div className="h-3 w-3 bg-white rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+              </div>
+              <span className="font-semibold">Scraped Content ({scrapedContent.length.toLocaleString()} characters)</span>
+            </div>
+            <span className="text-xs text-gray-300">Live Updates</span>
+          </div>
+          <div className="bg-black/20 rounded-lg p-3 max-h-64 overflow-y-auto">
+            <pre className="text-green-100 text-xs font-mono whitespace-pre-wrap select-all">
+              {scrapedContent}
+            </pre>
           </div>
         </div>
       )}

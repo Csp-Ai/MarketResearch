@@ -7,9 +7,16 @@ export const useAnalysis = () => {
   const [analysisLog, setAnalysisLog] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [scrapingResult, setScrapingResult] = useState<ScrapingResult | null>(null);
+  const [scrapedContent, setScrapedContent] = useState<string>('');
+  const [showScrapedContent, setShowScrapedContent] = useState(false);
 
   const addLogEntry = (message: string) => {
     setAnalysisLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
+  };
+
+  const addScrapedContent = (content: string, url: string, title: string) => {
+    const newContent = `=== ${title} (${url}) ===\n${content}\n\n`;
+    setScrapedContent(prev => prev + newContent);
   };
 
   // Helper functions to extract information from scraped content
@@ -51,6 +58,8 @@ export const useAnalysis = () => {
     setCurrentStep('');
     setError(null);
     setScrapingResult(null);
+    setScrapedContent('');
+    setShowScrapedContent(true);
     
     try {
       const apiBaseUrl = import.meta.env.VITE_SCRAPER_API_BASE_URL || 'http://localhost:8000';
@@ -122,6 +131,13 @@ export const useAnalysis = () => {
             isOriginal: isOriginal
           });
           
+          // Add scraped content to display
+          addScrapedContent(
+            scrapeData.main_page?.content || '',
+            currentUrl,
+            scrapeData.main_page?.title || 'No Title'
+          );
+          
           addLogEntry(`✅ Successfully scraped: ${currentUrl}${isOriginal ? ' (ORIGINAL)' : ''}`);
           
         } catch (scrapeError) {
@@ -175,6 +191,7 @@ export const useAnalysis = () => {
 
       // Send to /analyze-business endpoint
       setCurrentStep('analyzing');
+      setShowScrapedContent(false); // Minimize scraped content during analysis
       addLogEntry('🤖 Sending combined data to AI for business analysis...');
       // Remove all double quotes from the combined content
       let cleanedContent = combinedTextContent.replace(/"/g, '');
@@ -314,6 +331,8 @@ export const useAnalysis = () => {
     analysisLog,
     error,
     scrapingResult,
+    scrapedContent,
+    showScrapedContent,
     startAnalysis,
     addLogEntry
   };

@@ -24,9 +24,6 @@ interface ResultsDisplayProps {
 export default function ResultsDisplay({ scrapingResult }: ResultsDisplayProps) {
   const [renderedChunks, setRenderedChunks] = useState<string[]>([]);
   const [isRendering, setIsRendering] = useState(true);
-  const [showFullContent, setShowFullContent] = useState(false);
-
-  const isMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
   useEffect(() => {
     if (!scrapingResult?.combined_text_content) {
@@ -34,17 +31,9 @@ export default function ResultsDisplay({ scrapingResult }: ResultsDisplayProps) 
       return;
     }
 
-    // Process content in chunks to avoid mobile rendering issues
+    // Show full content in one piece for easy copying
     const content = scrapingResult.combined_text_content.replace(/"/g, '');
-    const chunkSize = isMobile() ? 1000 : 3000; // Smaller chunks on mobile
-    const chunks = [];
-
-    // Split content into manageable chunks
-    for (let i = 0; i < content.length; i += chunkSize) {
-      chunks.push(content.substring(i, i + chunkSize));
-    }
-
-    setRenderedChunks(chunks);
+    setRenderedChunks([content]); // Single chunk with all content
     setIsRendering(false);
   }, [scrapingResult]);
 
@@ -66,42 +55,21 @@ export default function ResultsDisplay({ scrapingResult }: ResultsDisplayProps) 
   };
 
   const renderContentChunks = () => {
-    if (showFullContent) {
-      // Show all chunks
-      return renderedChunks.map((chunk, index) => (
-        <div key={index} className="mb-3 p-3 bg-gray-50 rounded border">
-          <div className="text-xs text-gray-500 mb-2 font-medium">
-            Part {index + 1} of {renderedChunks.length}
-          </div>
-          <pre className="whitespace-pre-wrap text-xs text-gray-800">{chunk}</pre>
+    // Show full content in one piece for easy copying
+    return renderedChunks.map((chunk, index) => (
+      <div key={index} className="mb-3 p-3 bg-gray-50 rounded border">
+        <div className="text-xs text-gray-500 mb-2 font-medium flex justify-between items-center">
+          <span>Complete Scraped Content ({chunk.length.toLocaleString()} characters)</span>
+          <button
+            onClick={() => navigator.clipboard.writeText(chunk)}
+            className="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors"
+          >
+            Copy All
+          </button>
         </div>
-      ));
-    } else {
-      // Show first few chunks with option to expand
-      const previewChunks = renderedChunks.slice(0, 3);
-      return (
-        <>
-          {previewChunks.map((chunk, index) => (
-            <div key={index} className="mb-3 p-3 bg-gray-50 rounded border">
-              <div className="text-xs text-gray-500 mb-2 font-medium">
-                Part {index + 1} of {renderedChunks.length}
-              </div>
-              <pre className="whitespace-pre-wrap text-xs text-gray-800">{chunk}</pre>
-            </div>
-          ))}
-          {renderedChunks.length > 3 && (
-            <div className="text-center py-4">
-              <button
-                onClick={() => setShowFullContent(true)}
-                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
-              >
-                Show All Content ({renderedChunks.length - 3} more parts)
-              </button>
-            </div>
-          )}
-        </>
-      );
-    }
+        <pre className="whitespace-pre-wrap text-xs text-gray-800 select-all">{chunk}</pre>
+      </div>
+    ));
   };
 
   return (
