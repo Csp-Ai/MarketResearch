@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   FileText, 
@@ -22,6 +22,32 @@ interface ResultsDisplayProps {
 }
 
 export default function ResultsDisplay({ scrapingResult }: ResultsDisplayProps) {
+  const [renderedChunks, setRenderedChunks] = useState<string[]>([]);
+  const [isRendering, setIsRendering] = useState(true);
+  const [showFullContent, setShowFullContent] = useState(false);
+
+  const isMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  useEffect(() => {
+    if (!scrapingResult?.combined_text_content) {
+      setIsRendering(false);
+      return;
+    }
+
+    // Process content in chunks to avoid mobile rendering issues
+    const content = scrapingResult.combined_text_content.replace(/"/g, '');
+    const chunkSize = isMobile() ? 1000 : 3000; // Smaller chunks on mobile
+    const chunks = [];
+
+    // Split content into manageable chunks
+    for (let i = 0; i < content.length; i += chunkSize) {
+      chunks.push(content.substring(i, i + chunkSize));
+    }
+
+    setRenderedChunks(chunks);
+    setIsRendering(false);
+  }, [scrapingResult]);
+
   const renderList = (items: string[] | undefined, fallbackText: string = "Not available") => {
     if (!items || items.length === 0) {
       return (
@@ -39,6 +65,45 @@ export default function ResultsDisplay({ scrapingResult }: ResultsDisplayProps) 
     ));
   };
 
+  const renderContentChunks = () => {
+    if (showFullContent) {
+      // Show all chunks
+      return renderedChunks.map((chunk, index) => (
+        <div key={index} className="mb-3 p-3 bg-gray-50 rounded border">
+          <div className="text-xs text-gray-500 mb-2 font-medium">
+            Part {index + 1} of {renderedChunks.length}
+          </div>
+          <pre className="whitespace-pre-wrap text-xs text-gray-800">{chunk}</pre>
+        </div>
+      ));
+    } else {
+      // Show first few chunks with option to expand
+      const previewChunks = renderedChunks.slice(0, 3);
+      return (
+        <>
+          {previewChunks.map((chunk, index) => (
+            <div key={index} className="mb-3 p-3 bg-gray-50 rounded border">
+              <div className="text-xs text-gray-500 mb-2 font-medium">
+                Part {index + 1} of {renderedChunks.length}
+              </div>
+              <pre className="whitespace-pre-wrap text-xs text-gray-800">{chunk}</pre>
+            </div>
+          ))}
+          {renderedChunks.length > 3 && (
+            <div className="text-center py-4">
+              <button
+                onClick={() => setShowFullContent(true)}
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+              >
+                Show All Content ({renderedChunks.length - 3} more parts)
+              </button>
+            </div>
+          )}
+        </>
+      );
+    }
+  };
+
   return (
     <section className="max-w-7xl mx-auto px-4 py-12 mb-16">
       <h2 className="text-3xl md:text-4xl font-extrabold text-blue-800 mb-2 text-center flex items-center justify-center gap-2">
@@ -54,9 +119,20 @@ export default function ResultsDisplay({ scrapingResult }: ResultsDisplayProps) 
         <div className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
           <FileText className="h-5 w-5 text-blue-400" />
           All Scraped Content (Combined)
+          <span className="text-sm text-gray-500">
+            ({scrapingResult.combined_text_content.length.toLocaleString()} characters)
+          </span>
         </div>
-        <div className="bg-gray-50 rounded p-3 text-sm font-mono max-h-96 overflow-y-auto border">
-          <pre className="whitespace-pre-wrap text-xs">{scrapingResult.combined_text_content.replace(/"/g, '')}</pre>
+        
+        <div className="max-h-96 overflow-y-auto">
+          {isRendering ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <div className="text-gray-500">Processing content for display...</div>
+            </div>
+          ) : (
+            renderContentChunks()
+          )}
         </div>
       </div>
       
