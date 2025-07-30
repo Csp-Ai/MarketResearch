@@ -6,7 +6,34 @@ import ResultsDisplay from '../components/landing/ResultsDisplay';
 import { useAnalysis } from '../hooks/useAnalysis';
 
 export default function LandingPage() {
-  const { scrapingResult, isAnalyzing, currentStep, analysisLog, error, scrapedContent, showScrapedContent, startAnalysis } = useAnalysis();
+  const { 
+    scrapingResult, 
+    isAnalyzing, 
+    isDiscovering,
+    isUrlSelecting,
+    isScraping,
+    isAnalyzingPhase,
+    currentPhase, 
+    analysisLog, 
+    error, 
+    scrapedContent, 
+    showScrapedContent, 
+    startAnalysis,
+    urlSelectionState,
+    showUrlSelection,
+    scrapeProgress,
+    analysisProgress,
+    handleUrlsSelected,
+    handleBackToUrlSelection,
+    cleanup
+  } = useAnalysis();
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      cleanup();
+    };
+  }, [cleanup]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-dark-900 via-dark-800 to-dark-950 dark:text-white">
@@ -16,12 +43,22 @@ export default function LandingPage() {
       <div className="pt-16">
         <Hero 
           isAnalyzing={isAnalyzing}
-          currentStep={currentStep}
+          isDiscovering={isDiscovering}
+          isUrlSelecting={isUrlSelecting}
+          isScraping={isScraping}
+          isAnalyzingPhase={isAnalyzingPhase}
+          currentPhase={currentPhase}
           analysisLog={analysisLog}
           error={error}
           scrapedContent={scrapedContent}
           showScrapedContent={showScrapedContent}
           startAnalysis={startAnalysis}
+          urlSelectionState={urlSelectionState}
+          showUrlSelection={showUrlSelection}
+          scrapeProgress={scrapeProgress}
+          analysisProgress={analysisProgress}
+          handleUrlsSelected={handleUrlsSelected}
+          handleBackToUrlSelection={handleBackToUrlSelection}
         />
         
         {/* Results Section */}

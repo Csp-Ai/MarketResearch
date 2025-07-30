@@ -1,23 +1,50 @@
-import { useState } from 'react';
-import { ScrapingResult, AnalysisReport } from '../types/analysis';
+import { useState, useCallback, useRef } from 'react';
+import { 
+  ScrapingResult, 
+  AnalysisReport, 
+  DiscoverResponse, 
+  ScrapeStatusResponse, 
+  AnalysisStatusResponse,
+  URLSelectionState 
+} from '../types/analysis';
 
 export const useAnalysis = () => {
+  // Separate state for each step
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [isUrlSelecting, setIsUrlSelecting] = useState(false);
+  const [isScraping, setIsScraping] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [currentStep, setCurrentStep] = useState<string>('');
+  
+  // Helper function to get overall loading state (for backward compatibility)
+  const isAnyStepActive = isDiscovering || isUrlSelecting || isScraping || isAnalyzing;
+  
+  const [currentPhase, setCurrentPhase] = useState<'discovering' | 'url-selection' | 'scraping' | 'analyzing' | 'completed'>('discovering');
   const [analysisLog, setAnalysisLog] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [scrapingResult, setScrapingResult] = useState<ScrapingResult | null>(null);
   const [scrapedContent, setScrapedContent] = useState<string>('');
   const [showScrapedContent, setShowScrapedContent] = useState(false);
 
-  const addLogEntry = (message: string) => {
-    setAnalysisLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
-  };
+  // New state for URL selection and polling
+  const [urlSelectionState, setUrlSelectionState] = useState<URLSelectionState | null>(null);
+  const [showUrlSelection, setShowUrlSelection] = useState(false);
+  const [crawlId, setCrawlId] = useState<string | null>(null);
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
+  const [scrapeProgress, setScrapeProgress] = useState<ScrapeStatusResponse | null>(null);
+  const [analysisProgress, setAnalysisProgress] = useState<AnalysisStatusResponse | null>(null);
 
-  const addScrapedContent = (content: string, url: string, title: string) => {
+  // Refs for polling intervals
+  const scrapePollingRef = useRef<NodeJS.Timeout | null>(null);
+  const analysisPollingRef = useRef<NodeJS.Timeout | null>(null);
+
+  const addLogEntry = useCallback((message: string) => {
+    setAnalysisLog(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`]);
+  }, []);
+
+  const addScrapedContent = useCallback((content: string, url: string, title: string) => {
     const newContent = `=== ${title} (${url}) ===\n${content}\n\n`;
     setScrapedContent(prev => prev + newContent);
-  };
+  }, []);
 
   // Helper functions to extract information from scraped content
   const extractProducts = (content: string): string[] => {
@@ -50,22 +77,251 @@ export const useAnalysis = () => {
     return [...new Set([...featureMatches, ...technologyMatches])];
   };
 
-  const startAnalysis = async (url: string) => {
+  // Polling functions
+  const pollScrapeStatus = useCallback(async (crawlId: string) => {
+    const apiBaseUrl = import.meta.env.VITE_SCRAPER_API_BASE_URL || 'http://localhost:8000';
+    
+    try {
+      const response = await fetch(`${apiBaseUrl}/check-scrape-status/${crawlId}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const statusData: ScrapeStatusResponse = await response.json();
+      setScrapeProgress(statusData);
+      
+      addLogEntry(`📊 Scraping progress: ${statusData.scraped_count}/${statusData.total_urls} URLs completed (${statusData.progress}%)`);
+      
+      if (statusData.status === 'completed') {
+        addLogEntry('✅ Scraping completed successfully!');
+        setIsScraping(false);
+        setIsAnalyzing(true);
+        setCurrentPhase('analyzing');
+        return true;
+      } else if (statusData.status === 'failed') {
+        throw new Error('Scraping failed');
+      }
+      
+      return false;
+    } catch (error) {
+      addLogEntry(`❌ Error checking scrape status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
+    }
+  }, [addLogEntry]);
+
+  const pollAnalysisStatus = useCallback(async (analysisId: string) => {
+    const apiBaseUrl = import.meta.env.VITE_SCRAPER_API_BASE_URL || 'http://localhost:8000';
+    
+    try {
+      addLogEntry(`🔍 Checking analysis status for ID: ${analysisId}`);
+      const response = await fetch(`${apiBaseUrl}/check-analysis/${analysisId}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const statusData: AnalysisStatusResponse = await response.json();
+      setAnalysisProgress(statusData);
+      
+      addLogEntry(`🧠 Analysis progress: ${statusData.progress}% complete (Status: ${statusData.status})`);
+      
+      if (statusData.status === 'completed' && statusData.result) {
+        addLogEntry('✅ Analysis completed successfully!');
+        
+        // Create final result
+        const finalResult: ScrapingResult = {
+          original_url: urlSelectionState?.baseUrl || '',
+          total_urls_discovered: urlSelectionState?.discoveredUrls.length || 0,
+          total_urls_scraped: scrapeProgress?.scraped_count || 0,
+          scrape_time: Date.now(),
+          all_scraped_data: [], // Will be populated by backend
+          all_content: [], // Will be populated by backend
+          combined_text_content: '', // Will be populated by backend
+          extracted_info: {
+            total_pages: scrapeProgress?.total_urls || 0,
+            total_words: 0, // Will be calculated
+            unique_products: [],
+            contact_info: [],
+            pricing_info: [],
+            business_description: '',
+            key_features: []
+          },
+          main_page: null,
+          linked_pages: [],
+          total_pages_scraped: scrapeProgress?.scraped_count || 0,
+          unique_urls_visited: scrapeProgress?.scraped_count || 0,
+          analysisReport: statusData.result
+        };
+        
+        setScrapingResult(finalResult);
+        setIsAnalyzing(false);
+        setCurrentPhase('completed');
+        return true;
+      } else if (statusData.status === 'failed') {
+        throw new Error(statusData.error || 'Analysis failed');
+      }
+      
+      return false;
+    } catch (error) {
+      addLogEntry(`❌ Error checking analysis status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw error;
+    }
+  }, [addLogEntry, urlSelectionState, scrapeProgress]);
+
+  // Start polling for analysis status
+  const startAnalysisPolling = useCallback((analysisId: string) => {
+    const poll = async () => {
+      try {
+        const isComplete = await pollAnalysisStatus(analysisId);
+        if (!isComplete) {
+          analysisPollingRef.current = setTimeout(poll, 3000); // Poll every 3 seconds
+        } else {
+          setIsAnalyzing(false);
+        }
+      } catch (error) {
+        setError(error instanceof Error ? error.message : 'Analysis failed');
+        setIsAnalyzing(false);
+      }
+    };
+    
+    poll();
+  }, [pollAnalysisStatus]);
+
+  // Start polling for scrape status
+  const startScrapePolling = useCallback((crawlId: string) => {
+    const poll = async () => {
+      try {
+        const isComplete = await pollScrapeStatus(crawlId);
+        if (!isComplete) {
+          scrapePollingRef.current = setTimeout(poll, 3000); // Poll every 3 seconds
+        } else {
+          // Start analysis
+          addLogEntry('🔄 Scraping complete, starting analysis phase...');
+          // We'll call startAnalysis directly here instead of using the callback
+          if (!crawlId) {
+            addLogEntry(`❌ Error: No crawl ID available for analysis`);
+            return;
+          }
+          
+          const apiBaseUrl = import.meta.env.VITE_SCRAPER_API_BASE_URL || 'http://localhost:8000';
+          
+          try {
+            addLogEntry('🤖 Starting business analysis...');
+            addLogEntry(`📋 Using crawl ID: ${crawlId}`);
+            
+            const response = await fetch(`${apiBaseUrl}/analyze-scraped-data`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ crawl_id: crawlId }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            setAnalysisId(data.analysis_id);
+            
+            addLogEntry(`📋 Analysis started with ID: ${data.analysis_id}`);
+            
+            // Start polling for analysis status
+            startAnalysisPolling(data.analysis_id);
+            
+          } catch (error) {
+            addLogEntry(`❌ Error starting analysis: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            setError(error instanceof Error ? error.message : 'Failed to start analysis');
+            setIsAnalyzing(false);
+          }
+        }
+      } catch (error) {
+        setError(error instanceof Error ? error.message : 'Scraping failed');
+        setIsScraping(false);
+      }
+    };
+    
+    poll();
+  }, [pollScrapeStatus, addLogEntry, startAnalysisPolling]);
+
+
+
+  // Start scraping with selected URLs
+  const startScraping = useCallback(async (selectedUrls: string[]) => {
+    if (!urlSelectionState) return;
+    
+    const apiBaseUrl = import.meta.env.VITE_SCRAPER_API_BASE_URL || 'http://localhost:8000';
+    
+    try {
+      setCurrentPhase('scraping');
+      addLogEntry(`🚀 Starting scraping for ${selectedUrls.length} URLs...`);
+      
+      const response = await fetch(`${apiBaseUrl}/scrape-urls`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          urls: selectedUrls, 
+          base_url: urlSelectionState.baseUrl 
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setCrawlId(data.crawl_id);
+      
+      addLogEntry(`📋 Scraping started with crawl ID: ${data.crawl_id}`);
+      
+      // Start polling for scrape status
+      startScrapePolling(data.crawl_id);
+      
+    } catch (error) {
+      addLogEntry(`❌ Error starting scraping: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setError(error instanceof Error ? error.message : 'Failed to start scraping');
+      setIsScraping(false);
+    }
+  }, [urlSelectionState, addLogEntry, startScrapePolling]);
+
+  // Main analysis function
+  const startAnalysisProcess = useCallback(async (url: string) => {
     if (!url) return;
     
-    setIsAnalyzing(true);
+    // Step 1: Start discovering
+    setIsDiscovering(true);
+    setIsUrlSelecting(false);
+    setIsScraping(false);
+    setIsAnalyzing(false);
+    
     setAnalysisLog([]);
-    setCurrentStep('');
+    setCurrentPhase('discovering');
     setError(null);
     setScrapingResult(null);
     setScrapedContent('');
     setShowScrapedContent(true);
+    setUrlSelectionState(null);
+    setShowUrlSelection(false);
+    setCrawlId(null);
+    setAnalysisId(null);
+    setScrapeProgress(null);
+    setAnalysisProgress(null);
+    
+    // Clear any existing polling
+    if (scrapePollingRef.current) {
+      clearTimeout(scrapePollingRef.current);
+    }
+    if (analysisPollingRef.current) {
+      clearTimeout(analysisPollingRef.current);
+    }
     
     try {
       const apiBaseUrl = import.meta.env.VITE_SCRAPER_API_BASE_URL || 'http://localhost:8000';
       
       // Step 1: Discover crawlable URLs
-      setCurrentStep('discovering');
       addLogEntry('🔍 Starting analysis...');
       addLogEntry(`📡 Discovering crawlable URLs for: ${url}`);
       
@@ -81,259 +337,89 @@ export const useAnalysis = () => {
         throw new Error(`HTTP error! status: ${discoverResponse.status}`);
       }
 
-      const discoverData = await discoverResponse.json();
+      const discoverData: DiscoverResponse = await discoverResponse.json();
       addLogEntry(`✅ Found ${discoverData.urls?.length || 0} crawlable URLs`);
       
       if (!discoverData.urls || discoverData.urls.length === 0) {
         throw new Error('No crawlable URLs found');
       }
 
-      // Step 2: Scrape each URL, starting with the original URL
-      setCurrentStep('scraping');
-      const allScrapedData = [];
+      // Step 2: Switch to URL selection mode
+      setIsDiscovering(false);
+      setIsUrlSelecting(true);
       
-      // Ensure the original URL is included and scraped first
-      const urlsToScrape = [url, ...discoverData.urls.filter((u: string) => u !== url)];
-      addLogEntry(`📋 Will scrape ${urlsToScrape.length} URLs (starting with original URL)`);
-      
-      for (let i = 0; i < urlsToScrape.length; i++) {
-        const currentUrl = urlsToScrape[i];
-        const isOriginal = currentUrl === url;
-        addLogEntry(`🌐 Scraping URL ${i + 1}/${urlsToScrape.length}${isOriginal ? ' (ORIGINAL)' : ''}: ${currentUrl}`);
-        
-        try {
-          const scrapeResponse = await fetch(`${apiBaseUrl}/scrape`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ url: currentUrl }),
-          });
-
-          if (!scrapeResponse.ok) {
-            addLogEntry(`⚠️ Failed to scrape ${currentUrl}: HTTP ${scrapeResponse.status}`);
-            continue;
-          }
-
-          const scrapeData = await scrapeResponse.json();
-          // Remove all double quotes from title and content as soon as data is returned
-          if (scrapeData.main_page) {
-            if (typeof scrapeData.main_page.title === 'string') {
-              scrapeData.main_page.title = scrapeData.main_page.title.replace(/"/g, '');
-            }
-            if (typeof scrapeData.main_page.content === 'string') {
-              scrapeData.main_page.content = scrapeData.main_page.content.replace(/"/g, '');
-            }
-          }
-          allScrapedData.push({
-            url: currentUrl,
-            data: scrapeData,
-            isOriginal: isOriginal
-          });
-          
-          // Add scraped content to display
-          addScrapedContent(
-            scrapeData.main_page?.content || '',
-            currentUrl,
-            scrapeData.main_page?.title || 'No Title'
-          );
-          
-          addLogEntry(`✅ Successfully scraped: ${currentUrl}${isOriginal ? ' (ORIGINAL)' : ''}`);
-          
-        } catch (scrapeError) {
-          addLogEntry(`❌ Error scraping ${currentUrl}: ${scrapeError instanceof Error ? scrapeError.message : 'Unknown error'}`);
-        }
-      }
-
-      // Combine all scraped data
-      setCurrentStep('combining');
-      addLogEntry('🔗 Combining all scraped data...');
-      
-      // Aggregate all content from scraped pages, quotes already removed
-      const allContent = allScrapedData.map(item => ({
-        url: item.url,
-        title: item.data.main_page?.title || 'No Title',
-        content: item.data.main_page?.content || '',
-        status: item.data.main_page?.status_code || 'N/A',
-        isOriginal: item.isOriginal
-      }));
-      
-      // Combine all text content for analysis (quotes already removed)
-      const combinedTextContent = allContent
-        .map(item => `=== ${item.title} (${item.url}) ===\n${item.content}`)
-        .join('\n\n');
-      
-      // Extract key information for market research
-      const extractedInfo = {
-        total_pages: allContent.length,
-        total_words: combinedTextContent.split(/\s+/).length,
-        unique_products: extractProducts(combinedTextContent),
-        contact_info: extractContactInfo(combinedTextContent),
-        pricing_info: extractPricingInfo(combinedTextContent),
-        business_description: extractBusinessDescription(combinedTextContent),
-        key_features: extractKeyFeatures(combinedTextContent)
+      const urlSelectionState: URLSelectionState = {
+        discoveredUrls: discoverData.urls,
+        selectedUrls: [url], // Default to original URL
+        baseUrl: discoverData.base_url,
+        allowedByRobots: discoverData.allowed_by_robots,
+        crawlDelay: discoverData.crawl_delay
       };
       
-      const combinedResult = {
-        original_url: url,
-        total_urls_discovered: discoverData.urls.length,
-        total_urls_scraped: allScrapedData.length,
-        scrape_time: Date.now(),
-        all_scraped_data: allScrapedData,
-        all_content: allContent,
-        combined_text_content: combinedTextContent,
-        extracted_info: extractedInfo,
-        main_page: allScrapedData.find(data => data.url === url)?.data?.main_page || null,
-        linked_pages: allScrapedData.flatMap(data => data.data.linked_pages || []),
-        total_pages_scraped: allScrapedData.reduce((total, data) => total + (data.data.total_pages_scraped || 1), 0),
-        unique_urls_visited: new Set(allScrapedData.flatMap(data => [data.url, ...(data.data.linked_pages?.map((p: any) => p.url) || [])])).size
-      };
-
-      // Send to /analyze-business endpoint
-      setCurrentStep('analyzing');
-      setShowScrapedContent(false); // Minimize scraped content during analysis
-      addLogEntry('🤖 Sending combined data to AI for business analysis...');
-      // Remove all double quotes from the combined content
-      let cleanedContent = combinedTextContent.replace(/"/g, '');
-      let analysisReport: AnalysisReport = {
-        company_overview: '',
-        key_offerings_or_products: [],
-        target_customer_segments: [],
-        unique_selling_points: [],
-        industry_and_market_trends: [],
-        potential_business_challenges: [],
-        opportunities_for_using_ai: [],
-        recommended_ai_use_cases: { short_term: [], medium_term: [], long_term: [] },
-        data_requirements_and_risks: [],
-        suggested_next_steps_for_ai_adoption: [],
-        customer_journey_mapping: '',
-        digital_maturity_assessment: '',
-        technology_stack_overview: [],
-        partnerships_and_alliances: [],
-        sustainability_and_social_responsibility: '',
-        financial_overview: '',
-        actionable_recommendations: [],
-        competitive_landscape: [],
-        customer_testimonials: [],
-        quantitative_opportunity_metrics: [],
-        content_inventory: [],
-        ai_maturity_level: '',
-        data_sources_reviewed: [],
-        business_stage: '',
-        branding_tone: '',
-        visual_opportunities: [],
-        team_ai_readiness: ''
-      };
-      
-      try {
-        const analyzeResponse = await fetch(`${apiBaseUrl}/analyze-business`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ combined_content: cleanedContent })
-        });
-        
-        let analyzeJson = null;
-        try {
-          analyzeJson = await analyzeResponse.json();
-        } catch (jsonErr) {
-          // Not valid JSON
-        }
-        
-        if (analyzeJson && typeof analyzeJson === 'object') {
-          analysisReport = {
-            company_overview: analyzeJson.company_overview || '',
-            key_offerings_or_products: analyzeJson.key_offerings_or_products || [],
-            target_customer_segments: analyzeJson.target_customer_segments || [],
-            unique_selling_points: analyzeJson.unique_selling_points || [],
-            industry_and_market_trends: analyzeJson.industry_and_market_trends || [],
-            potential_business_challenges: analyzeJson.potential_business_challenges || [],
-            opportunities_for_using_ai: analyzeJson.opportunities_for_using_ai || [],
-            recommended_ai_use_cases: analyzeJson.recommended_ai_use_cases || { short_term: [], medium_term: [], long_term: [] },
-            data_requirements_and_risks: analyzeJson.data_requirements_and_risks || [],
-            suggested_next_steps_for_ai_adoption: analyzeJson.suggested_next_steps_for_ai_adoption || [],
-            customer_journey_mapping: analyzeJson.customer_journey_mapping || '',
-            digital_maturity_assessment: analyzeJson.digital_maturity_assessment || '',
-            technology_stack_overview: analyzeJson.technology_stack_overview || [],
-            partnerships_and_alliances: analyzeJson.partnerships_and_alliances || [],
-            sustainability_and_social_responsibility: analyzeJson.sustainability_and_social_responsibility || '',
-            financial_overview: analyzeJson.financial_overview || '',
-            actionable_recommendations: analyzeJson.actionable_recommendations || [],
-            competitive_landscape: analyzeJson.competitive_landscape || [],
-            customer_testimonials: analyzeJson.customer_testimonials || [],
-            quantitative_opportunity_metrics: analyzeJson.quantitative_opportunity_metrics || [],
-            content_inventory: analyzeJson.content_inventory || [],
-            ai_maturity_level: analyzeJson.ai_maturity_level || '',
-            data_sources_reviewed: analyzeJson.data_sources_reviewed || [],
-            business_stage: analyzeJson.business_stage || '',
-            branding_tone: analyzeJson.branding_tone || '',
-            visual_opportunities: analyzeJson.visual_opportunities || [],
-            team_ai_readiness: analyzeJson.team_ai_readiness || ''
-          };
-        } else {
-          // fallback: try to get text for business_summary only
-          let analyzeText = '';
-          try {
-            analyzeText = await analyzeResponse.text();
-          } catch {}
-          analysisReport = {
-            company_overview: analyzeText,
-            key_offerings_or_products: [],
-            target_customer_segments: [],
-            unique_selling_points: [],
-            industry_and_market_trends: [],
-            potential_business_challenges: [],
-            opportunities_for_using_ai: [],
-            recommended_ai_use_cases: { short_term: [], medium_term: [], long_term: [] },
-            data_requirements_and_risks: [],
-            suggested_next_steps_for_ai_adoption: [],
-            customer_journey_mapping: '',
-            digital_maturity_assessment: '',
-            technology_stack_overview: [],
-            partnerships_and_alliances: [],
-            sustainability_and_social_responsibility: '',
-            financial_overview: '',
-            actionable_recommendations: [],
-            competitive_landscape: [],
-            customer_testimonials: [],
-            quantitative_opportunity_metrics: [],
-            content_inventory: [],
-            ai_maturity_level: '',
-            data_sources_reviewed: [],
-            business_stage: '',
-            branding_tone: '',
-            visual_opportunities: [],
-            team_ai_readiness: ''
-          };
-        }
-      } catch (analyzeError) {
-        addLogEntry('❌ Error analyzing business: ' + (analyzeError instanceof Error ? analyzeError.message : 'Unknown error'));
-      }
-      
-      addLogEntry('🎉 Analysis completed successfully!');
-      setScrapingResult({ ...combinedResult, combined_text_content: cleanedContent, analysisReport });
+      setUrlSelectionState(urlSelectionState);
+      setShowUrlSelection(true);
+      setCurrentPhase('url-selection');
       
     } catch (error) {
       console.error('Error during analysis:', error);
       const errorMessage = error instanceof Error ? error.message : 'An error occurred during analysis';
       addLogEntry(`❌ Error: ${errorMessage}`);
       setError(errorMessage);
-    } finally {
-      setIsAnalyzing(false);
-      setCurrentStep('');
+      setIsDiscovering(false);
     }
-  };
+  }, [addLogEntry]);
+
+  // Handle URL selection
+  const handleUrlsSelected = useCallback((selectedUrls: string[]) => {
+    if (!urlSelectionState) return;
+    
+    // Step 3: Start scraping
+    setIsUrlSelecting(false);
+    setIsScraping(true);
+    
+    setShowUrlSelection(false);
+    startScraping(selectedUrls);
+  }, [urlSelectionState, startScraping]);
+
+  // Handle back to URL selection
+  const handleBackToUrlSelection = useCallback(() => {
+    setShowUrlSelection(true);
+    setIsUrlSelecting(true);
+    setIsScraping(false);
+    setIsAnalyzing(false);
+    setCurrentPhase('url-selection');
+  }, []);
+
+  // Cleanup on unmount
+  const cleanup = useCallback(() => {
+    if (scrapePollingRef.current) {
+      clearTimeout(scrapePollingRef.current);
+    }
+    if (analysisPollingRef.current) {
+      clearTimeout(analysisPollingRef.current);
+    }
+  }, []);
 
   return {
-    isAnalyzing,
-    currentStep,
+    isAnalyzing: isAnyStepActive, // For backward compatibility
+    isDiscovering,
+    isUrlSelecting,
+    isScraping,
+    isAnalyzingPhase: isAnalyzing, // The specific analyzing state
+    currentPhase,
     analysisLog,
     error,
     scrapingResult,
     scrapedContent,
     showScrapedContent,
-    startAnalysis,
-    addLogEntry
+    urlSelectionState,
+    showUrlSelection,
+    scrapeProgress,
+    analysisProgress,
+    startAnalysis: startAnalysisProcess,
+    handleUrlsSelected,
+    handleBackToUrlSelection,
+    addLogEntry,
+    cleanup
   };
 }; 

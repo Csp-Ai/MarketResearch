@@ -34,6 +34,47 @@ export interface AnalysisReport {
   team_ai_readiness: string;
 }
 
+// New interfaces for updated backend flow
+export interface DiscoverResponse {
+  base_url: string;
+  allowed_by_robots: boolean;
+  crawl_delay: number;
+  urls_found: number;
+  urls: string[];
+}
+
+export interface ScrapeStatusResponse {
+  crawl_id: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  progress: number;
+  total_urls: number;
+  scraped_count: number;
+  failed_count: number;
+  remaining_count: number;
+  scraped_urls: string[];
+  failed_urls: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AnalysisStatusResponse {
+  analysis_id: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  progress: number;
+  result?: AnalysisReport;
+  error?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface URLSelectionState {
+  discoveredUrls: string[];
+  selectedUrls: string[];
+  baseUrl: string;
+  allowedByRobots: boolean;
+  crawlDelay: number;
+}
+
 export interface ScrapingResult {
   original_url: string;
   total_urls_discovered: number;
