@@ -2,25 +2,25 @@
 
 Audience: SEI Phoenix Managing Director
 
-## Five‑Minute Path
-1. **One‑liner**: "This agent team scans a company's site and builds an AI‑ready market research blueprint in minutes."
-2. Paste a real URL and click **Deploy Agent Team**.
-3. Narrate the live feed as agents progress (crawl IDs, page counts).
-4. Show the generated Blueprint sections.
-5. Tie each section to Ops & Strategy decisions (prioritization, resourcing, risk mgmt).
-6. Close with next steps: pilot scope, KPIs, timeline.
-
-## Fallback Plan
-- If network/API is slow, load a cached run from `example-output.json`.
-- Screenshare the Blueprint JSON or PDF and walk through highlights.
+## Step‑by‑Step
+1. **Kickoff** – one‑liner: "This agent team scans a company's site and builds an AI‑ready market research blueprint in minutes."
+2. **Enter URL** – paste a real company homepage and click **Deploy Agent Team**.
+3. **Narrate the live feed** – point out crawl IDs, page counts, and agent handoffs.
+4. **Show the Blueprint** – walk through each section and tie to Ops & Strategy decisions (prioritization, resourcing, risk management).
+5. **Discuss ROI** – ~90% faster first‑pass research; <$1 per 10‑page site.
+6. **Close** – outline next steps: pilot scope, KPIs, timeline.
 
 ## Talking Points
-- Governance & security stance (see SECURITY.md).
-- Human consultants validate agent findings and craft recommendations.
-- Plugs into client data sources via Supabase or REST APIs.
+- **Decision velocity** – cuts days of manual discovery.
+- **Ops & Strategy tie‑in** – outputs drop into existing SEI playbooks.
+- **ROI** – automated crawl + analysis keeps consultants on high‑value work.
+- **Fallback plan** – if APIs misbehave, load cached `example-output.json` and walk through.
+
+## Fallback Plan
+- If network/API is slow, load cached output from `example-output.json`.
+- Screenshare the Blueprint JSON or PDF and narrate key insights.
 
 ## Q&A
-- **ROI?** ~90% faster first-pass research; <$1 per 10-page site.
 - **Accuracy?** Agents surface raw text; consultants verify and refine.
 - **Hallucination defense?** Blueprint cites source URLs; no generation without data.
 - **Scale?** Horizontal scaling of crawl workers; LLM cost scales linearly.
