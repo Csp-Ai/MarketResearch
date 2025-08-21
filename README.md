@@ -1,109 +1,113 @@
-# AI Agent Market Research Frontend
+# AI Agent Market Research Blueprint
 
-A React-based frontend for AI agent market research and chatbot management.
+> Deploy an agent team that crawls your site, mines content, and produces an AI-ready go-to-market blueprint in minutes.
+
+> 📚 **Docs**: [Demo](DEMO.md) · [Agents](AGENTS.md) · [Architecture](ARCHITECTURE.md) · [Security](SECURITY.md)
+
+## Why This Matters (SEI lens)
+- **Decision velocity**: quickly surface market positioning and operational gaps.
+- **Portfolio prioritization**: compare offerings and focus investment where data proves demand.
+- **Lower research cost**: automate first-pass discovery and keep consultants on higher-value analysis.
+- **Ops readiness**: blueprint outputs feed change-management checklists and risk registers.
+
+## Live Demo Flow
+1. Enter a company URL and click **Deploy Agent Team**
+2. **URL Scout** maps the site
+3. **Page Selector** focuses high-value pages
+4. **Content Miner** extracts copy
+5. **Strategy Builder** assembles the AI Market Research Blueprint
+6. Live agent feed logs progress and results
+7. Download or share the Blueprint
+
+See [DEMO.md](DEMO.md) for a step-by-step runbook and interview script.
 
 ## Features
+- Agent pipeline: discovery → selection → extraction → synthesis
+- Live feed with progress and crawl IDs
+- Structured Blueprint: Company Overview, Offerings, Segments, Trends, Competition, Opportunities for AI, Tech Stack, Risks, Action Plan, Readiness
+- Modular agents; easy to add vertical-specific agents later
 
-- **Chatbot Management**: Create, edit, and manage AI chatbots
-- **Business Integration**: Connect chatbots with business data
-- **Conversation History**: Track and view chatbot conversations
-- **Chatbot Sharing**: Share chatbots via direct links, embed codes, and QR codes
+## Architecture
+- **Frontend**: Vite + React + TypeScript + Tailwind
+- **Backend/services**: Supabase for storage and auth; scraping/analysis API (Node/TS or Python) for agents
+- **Data layer**: Postgres via Supabase, object storage for assets
+- **Job orchestration & logs**: agent statuses streamed to the live feed
+- **Third-party APIs**: OpenAI (optional), Supabase, custom scraping API
 
-## Chatbot Sharing Features
+See [ARCHITECTURE.md](ARCHITECTURE.md) for diagrams, sequence flow, and data contracts.
 
-### Direct Link Sharing
-Users can share their chatbots using direct links in the format:
-```
-https://yourapp.com/chat/{chatbotId}
-```
+## Agents
+- **URL Scout** – discovers site map
+- **Page Selector** – ranks URLs for value
+- **Content Miner** – pulls text from pages
+- **Strategy Builder** – synthesizes the Blueprint
 
-### Embedding in Websites
-Chatbots can be embedded in external websites using iframe:
+See [AGENTS.md](AGENTS.md) for inputs, outputs, heuristics, and SOPs.
 
-```html
-<iframe src="https://yourapp.com/embed/{chatbotId}" width="350" height="500" frameborder="0"></iframe>
-```
-
-Or using the embed script:
-
-```html
-<script src="https://yourapp.com/embed.js"></script>
-<script>
-  ChatbotEmbed.init('{chatbotId}', {
-    position: 'bottom-right',
-    theme: 'light',
-    width: 350,
-    height: 500
-  });
-</script>
-```
-
-### QR Code Sharing
-QR codes are automatically generated for easy mobile sharing.
-
-## Development
-
+## Setup & Local Dev
 ### Prerequisites
-- Node.js (v16 or higher)
-- npm or yarn
+- Node.js LTS
+- npm
+- VS Code (recommended)
 
-### Installation
+### Install & Run
 ```bash
 npm install
-```
-
-### Environment Variables
-
-Create a `.env` file in the root directory with the following variables:
-
-```bash
-# API Configuration
-VITE_AGENTIAL_API=http://localhost:8000  # For local development
-# VITE_AGENTIAL_API=https://your-live-api.com  # For production
-
-# Legacy scraper API (used by useAnalysis hook)
-VITE_scraper_api_base_url=http://localhost:8000
-```
-
-### Running the Development Server
-```bash
 npm run dev
 ```
 
-### Building for Production
+### Environment
+Copy `.env.example` to `.env` and fill in keys.
+```bash
+cp .env.example .env
+```
+
+Key variables:
+- `PUBLIC_SITE_URL` – base URL for redirects/OG tags
+- `VITE_SCRAPER_API_BASE_URL` – backend for URL crawling and analysis
+- `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` – Supabase project
+- `OPENAI_API_KEY` – optional, enables embedding/LLM features
+
+### Build/Test
 ```bash
 npm run build
+npm run lint --if-present
+npm test --if-present
 ```
 
-## Project Structure
+### Deployment
+Optimized for Vercel: `vercel --prod` (requires configured project).
 
-```
-src/
-├── components/
-│   ├── chatbot/
-│   │   ├── ChatbotPreview.tsx      # Main chatbot interface
-│   │   ├── ConversationHistory.tsx  # Chat history viewer
-│   │   ├── EmbeddableChatbot.tsx   # Embeddable chatbot component
-│   │   └── SharingControls.tsx     # Sharing options UI
-│   └── ...
-├── pages/
-│   ├── Chatbots.tsx                # Main chatbots management page
-│   ├── PublicChatbot.tsx           # Public chatbot access page
-│   └── ...
-└── ...
-```
+## Security & Compliance
+- Secrets provided via environment variables; `.env` excluded from git
+- Supabase Row Level Security recommended for all tables
+- Add rate limiting and input validation to backend endpoints
+- `public/robots.txt` respects crawl ethics
 
-## API Endpoints
+See [SECURITY.md](SECURITY.md) for the full policy.
 
-- `GET /chat/{chatbotId}` - Public chatbot access
-- `GET /embed/{chatbotId}` - Embeddable chatbot interface
-- `POST /api/chat` - Chat message processing
+## Engineering Audit
+### Strengths
+- TypeScript with `strict` mode enabled
+- Vite + React + Tailwind for rapid iteration
+- Supabase integration with environment-based config
+- Lockfile and npm scripts for dev/build/lint
 
-## Technologies Used
+### Gaps
+- No automated tests or CI pipeline
+- Backend lacks documented rate limits and input validation
+- No pre-commit hooks to enforce linting/formatting
 
-- React 18
-- TypeScript
-- Tailwind CSS
-- Supabase (Backend)
-- Lucide React (Icons)
-- React Router DOM
+### Prioritized Fixes
+- **P0**: add server-side validation, rate limiting, and basic pre-commit checks
+- **P1**: introduce CI with lint/build/test and start unit test coverage
+- **P2**: implement CSP headers and expand telemetry/monitoring
+
+## Roadmap
+- **Short-term**: polish demo flows and stabilize agent APIs
+- **Near-term**: add vertical-specific agents and richer analytics
+- **Later**: enterprise features (SSO, audit logs, SLA dashboards)
+
+## License & Attribution
+MIT License. Based on Vite React TypeScript starter.
+
