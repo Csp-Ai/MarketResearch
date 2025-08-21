@@ -1,35 +1,35 @@
 # Security & Compliance
 
-## Secrets & Environment
-- Use `.env` for all secrets; file is gitignored.
-- `.env.example` documents required keys with safe defaults.
-- Never expose `SUPABASE_SERVICE_ROLE_KEY` in the browser.
+## Secret Handling
+- All secrets stored in `.env`; file is gitignored.
+- `SUPABASE_SERVICE_ROLE_KEY` remains server‑side only.
+- Rotate keys on compromise and never log full secrets.
 
 ## RLS / Authorization
-- Supabase RLS should restrict access by user/session.
-- Backend endpoints must verify ownership of `crawlId`/`analysisId`.
-- TODO: implement full auth handshake for demo API.
+- Supabase row‑level security restricts access by user/session.
+- Backend endpoints verify ownership of `crawlId`/`analysisId` before returning data.
+- Demo API currently uses a lightweight token; full auth handshake is a P0 follow‑up.
 
 ## Input Validation & Rate Limiting
 - Validate URLs and payload sizes on every request.
-- Apply IP-based rate limits (e.g., 10 requests/min) to scraping and analysis endpoints.
+- IP‑based rate limiting (e.g., 10 requests/min) protects scraping and LLM endpoints.
 
-## Logging & PII
-- Log crawl progress and errors only; avoid storing raw PII.
-- Retain logs for <30 days; mask emails/phones in analytics.
+## Logging & PII Masking
+- Log crawl progress and errors only; mask emails/phones and drop logs after <30 days.
+- Use structured logging for easier alerting and audit.
 
-## robots.txt & Crawl Ethics
-- `public/robots.txt` defaults to respectful crawling; agents honor disallow rules.
-- Opt-out by editing `robots.txt`.
+## robots.txt Stance
+- Default `public/robots.txt` allows respectful crawling.
+- Agents honor `Disallow` rules; edit file to opt out.
 
-## Supply Chain
+## Supply‑Chain Posture
 - Dependencies pinned via `package-lock.json`.
-- Review upstream packages and enable automated alerts (e.g., GitHub dependabot, CodeQL).
+- Enable Dependabot/CodeQL for automated vulnerability alerts.
 
 ## Risk Register
 | Risk | Mitigation |
 | ---- | ---------- |
-| Leakage of service role key | Keep keys server-side; rotate on compromise |
+| Leakage of service role key | Keep keys server‑side; rotate on compromise |
 | Unbounded crawling | Depth limits and robots.txt enforcement |
 | LLM misuse or hallucination | Cite source URLs; allow human review |
 | Excessive API cost | Limit pages and token counts per crawl |
