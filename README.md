@@ -1,12 +1,12 @@
 # AI Agent Market Research Blueprint
 
-Turn any company website into an AI‑ready market research brief in minutes. An SEI‑built agent team crawls a site, mines its content, and assembles a go‑to‑market blueprint that accelerates Ops & Strategy decisions.
+Turn any company website into an AI‑ready market research brief in minutes. An consulting‑built agent team crawls a site, mines its content, and assembles a go‑to‑market blueprint that accelerates Ops & Strategy decisions.
 
 > **Docs**: [Demo](DEMO.md) · [Agents](AGENTS.md) · [Architecture](ARCHITECTURE.md) · [Security](SECURITY.md)
 
 ---
 
-## Why This Matters (SEI Lens)
+## Why This Matters (Consulting Lens)
 - **Decision velocity** – surface positioning, offers, and gaps without a 2‑week research sprint.
 - **Portfolio prioritization** – compare market signals across targets and fund the winners.
 - **Lower research cost** – automate first‑pass discovery and keep consultants on higher‑value analysis.
