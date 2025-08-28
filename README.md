@@ -1,6 +1,6 @@
 # AI Agent Market Research Blueprint
 
-Turn any company website into an AI‑ready market research brief in minutes. An consulting‑built agent team crawls a site, mines its content, and assembles a go‑to‑market blueprint that accelerates Ops & Strategy decisions.
+Turn any company website into an AI‑ready market research brief in minutes. A consulting‑built agent team crawls a site, mines its content, and assembles a go‑to‑market blueprint that accelerates Ops & Strategy decisions.
 
 > **Docs**: [Demo](DEMO.md) · [Agents](AGENTS.md) · [Architecture](ARCHITECTURE.md) · [Security](SECURITY.md)
 
@@ -110,4 +110,4 @@ Full specs: [AGENTS.md](AGENTS.md).
 
 ---
 
-Built for SEI consultants to rapidly translate web presence into actionable strategy.
+Built for consultants to rapidly translate web presence into actionable strategy.
