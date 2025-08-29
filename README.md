@@ -1,113 +1,164 @@
-# AI Agent Market Research Blueprint
+# SGAI — SafeguardAI  
+_The seatbelt for enterprise AI adoption._
 
-Turn any company website into an AI‑ready market research brief in minutes. A consulting‑built agent team crawls a site, mines its content, and assembles a go‑to‑market blueprint that accelerates Ops & Strategy decisions.
-
-> **Docs**: [Demo](DEMO.md) · [Agents](AGENTS.md) · [Architecture](ARCHITECTURE.md) · [Security](SECURITY.md)
-
----
-
-## Why This Matters (Consulting Lens)
-- **Decision velocity** – surface positioning, offers, and gaps without a 2‑week research sprint.
-- **Portfolio prioritization** – compare market signals across targets and fund the winners.
-- **Lower research cost** – automate first‑pass discovery and keep consultants on higher‑value analysis.
-- **Operational readiness** – blueprint outputs feed change‑management checklists and risk registers.
-- **Client impact** – accelerates due diligence and transformation roadmaps with an SEI‑opinionated view.
+SafeguardAI (SGAI) is a **Grammarly-style compliance layer** that prevents sensitive data leaks into AI tools.  
+It detects and redacts **PII, PHI, and PCI data** in real time — before prompts leave the organization — enabling safe AI adoption under **HIPAA, PCI, GDPR, and CCPA**.
 
 ---
 
-## Demo Flow
-1. **Enter a company URL.** Paste a public site and hit **Deploy Agent Team**.
-   ![URL entry](docs/images/step1-url.png)
-2. **Watch the live agent feed.** URL Scout crawls, Page Selector ranks, Content Miner scrapes, and Strategy Builder synthesizes.
-   ![Agent feed](docs/images/step2-feed.png)
-3. **Review the AI Market Research Blueprint.** Sections include Overview, Offerings, Segments, Trends, Competition, AI Opportunities, Tech Stack, Risks, Action Plan, and Readiness.
-   ![Blueprint output](docs/images/step3-blueprint.png)
-4. **Share or download.** Export the blueprint JSON or PDF and drop into client workstreams.
+## 🚀 Features
 
-See [DEMO.md](DEMO.md) for a detailed runbook and talking points.
+- **Browser Extension (MV3)**  
+  Works across ChatGPT, Claude, Copilot, Gmail, Slack, Salesforce, etc.  
+  Inline highlights + suggestions, not just silent blocking.
 
----
+- **Interactive Demo**  
+  Redacts SSNs, credit cards, emails, DOBs, and more in real time.  
+  Hover highlights explain _why_ something was flagged.
 
-## Features
-- Four‑stage agent pipeline: discovery → selection → extraction → synthesis.
-- Real‑time activity feed with crawl IDs and section progress.
-- Structured Blueprint JSON for downstream analytics or presentation.
-- Modular agents with clearly defined contracts for easy extension.
+- **Compliance Dashboard**  
+  - 📊 KPIs (Incidents, Blocked %, Masked %, Top Entities)  
+  - 🔎 Incident drill-down with raw vs. sanitized payloads  
+  - ⚖️ Policy builder: visual IF/THEN rules (block, mask, approve, audit)  
+  - ✅ Approval workflows + audit logs
 
----
+- **Sector-Specific Landing Pages**  
+  Tailored messaging for **Healthcare (HIPAA/PHI)**, **Finance (PCI/GLBA/PII)**, and **General Enterprise (GDPR/CCPA)**.
 
-## Architecture Summary
-- **Frontend**: React + TypeScript, Vite build, Tailwind UI.
-- **Services**: Scraper & analysis API, Supabase auth/storage, optional OpenAI.
-- **Data Layer**: Postgres via Supabase; object storage for assets.
-- **Events & Logs**: Agent status events stream to UI and persist in Supabase.
-- **Deployment**: Vercel static frontend; edge/serverless functions host APIs.
-
-Diagrams and data contracts live in [ARCHITECTURE.md](ARCHITECTURE.md).
+- **Pricing & ROI Calculator**  
+  Shows per-seat SaaS ($15–30/user), enterprise flat fee ($50k–250k/yr), and API usage ($0.01–0.05/doc).  
+  ROI demo estimates breach costs avoided.
 
 ---
 
-## Agents Summary
-| Agent | Purpose |
-| ----- | ------- |
-| URL Scout | Map site structure and seed URLs |
-| Page Selector | Prioritize high‑value pages |
-| Content Miner | Extract readable text |
-| Strategy Builder | Synthesize Blueprint sections |
+## 🏗 Tech Stack
 
-Full specs: [AGENTS.md](AGENTS.md).
-
----
-
-## Setup & Local Dev
-1. Copy `.env.example` to `.env` and fill keys.
-2. Install dependencies: `npm install`.
-3. Run dev server: `npm run dev` → http://localhost:5173.
-4. Run a build: `npm run build`.
-5. Run tests: `npm test`.
-6. Lint (may report missing types): `npm run lint`.
+- [Next.js 14 (App Router)](https://nextjs.org/) + [TypeScript](https://www.typescriptlang.org/)  
+- [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) + [Framer Motion](https://www.framer.com/motion/)  
+- [Zustand](https://zustand-demo.pmnd.rs/) for state, [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) for forms/validation  
+- [Lucide Icons](https://lucide.dev/) for UI  
+- [Vitest](https://vitest.dev/) for unit tests, [Playwright](https://playwright.dev/) for E2E smoke tests  
+- [Chrome Extension MV3](https://developer.chrome.com/docs/extensions/) with shared React components
 
 ---
 
-## Security Summary
-- Secrets live in `.env`; service role keys stay server‑side.
-- Supabase RLS (row‑level security) restricts access per user/session.
-- All requests validate URLs/payload size and honor `public/robots.txt`.
-- Logs mask PII and retain for <30 days. See [SECURITY.md](SECURITY.md).
+## 📂 Project Structure (high level)
+
+/app
+/(marketing)/[icp] -> Healthcare, Finance, Enterprise
+/(marketing)/install
+/(marketing)/pricing
+/(marketing)/roi
+/(demo)/demo
+/(console)/{dashboard,policies,approvals,settings}
+/components -> UI + feature components
+/data -> mock JSON for incidents, policies, pricing
+/lib -> detectors, policies, mock API
+/store -> Zustand stores
+/extension -> Chrome MV3 (popup, options, content script)
+/tests -> Playwright + Vitest
+
+yaml
+Copy code
 
 ---
 
-## Engineering Audit
-**Strengths**
-- Typed React/Vite stack with modular agent design.
-- Clear separation between frontend, API services, and data layer.
+## 🧪 Local Development
 
-**Gaps**
-- No automated unit tests beyond smoke test.
-- Lint run reports missing types/unused variables.
-- RLS and auth handshake for demo API incomplete.
+```bash
+# Install deps
+npm install
 
-**Fixes**
-- **P0**: Implement full Supabase RLS and secure API auth.
-- **P1**: Resolve `npm run lint` errors and add type coverage.
-- **P2**: Expand test suite and add CI pipeline.
+# Start dev server
+npm run dev
 
----
+# Run unit tests (Vitest)
+npm run test
 
-## Roadmap
-- Add vertical‑specific scoring heuristics.
-- Support PDF and document parsing in Content Miner.
-- Add dashboard for cross‑company comparisons.
-- One‑click export to SEI strategy templates.
+# Run E2E tests (Playwright)
+npx playwright test
 
----
+# Build Chrome extension (outputs to /extension/dist)
+npm run build:ext
+Then load the extension in Chrome:
 
-## Docs Links
-- [Demo Runbook](DEMO.md)
-- [Agent Contracts](AGENTS.md)
-- [Architecture & Diagrams](ARCHITECTURE.md)
-- [Security & Risk Register](SECURITY.md)
+Go to chrome://extensions/
 
----
+Enable Developer Mode
 
-Built for consultants to rapidly translate web presence into actionable strategy.
+Click Load unpacked → select /extension/dist
+
+🎯 Mock Data & APIs
+All data is seeded locally in /data/*.json and surfaced via mock API routes (/api/mock/*).
+This enables full demo functionality without backend dependencies.
+
+incidents.json → populates dashboard
+
+policies.json → powers policy builder
+
+pricing.json → drives pricing calculator
+
+roiAssumptions.json → breach costs for ROI tool
+
+🛡 Privacy & Security (Demo Mode)
+All demo redaction runs locally in-browser (regex + simple NER stubs).
+
+No data is stored or transmitted externally.
+
+Enterprise mode will support on-prem and API proxy deployment for compliance.
+
+📊 Market Positioning
+SGAI addresses the urgent “Shadow AI” problem:
+
+63% of ChatGPT inputs contain PII
+
+Samsung, Amazon, Apple banned AI tools due to leaks
+
+Regulators (HIPAA, PCI, GDPR) impose multi-million-dollar fines
+
+Differentiation
+Employee-friendly UX (Grammarly-like assistive highlights)
+
+Bottom-up freemium adoption → viral growth inside orgs
+
+Enterprise compliance depth (audit logs, SSO/SCIM, on-prem options)
+
+Target ICPs
+🏥 Healthcare (HIPAA/PHI redaction)
+
+💳 Finance (PCI/GLBA, credit cards, account numbers)
+
+🏢 Enterprise (GDPR/CCPA, DSAR redaction, general privacy)
+
+📈 Roadmap (Draft)
+Q4 2025: Chrome Extension Beta, 1k free installs
+
+Q2 2026: Paid Teams launch, 5 enterprise pilots
+
+2027: 100 enterprise clients, $5M ARR
+
+👥 Team
+Zach — CTO (AI/ML, full-stack engineering)
+
+Mark — CPO (UX/product design)
+
+Chris — COO (Ops, compliance, enterprise process)
+
+Bobby — CRO/BD (Networking, partnerships, GTM)
+
+📜 License
+MIT (for now, subject to change as we productize enterprise features)
+
+🤝 Contributing
+We welcome PRs for:
+
+New detectors (regex/ML models for PII/PHI/PCI)
+
+UI/UX polish
+
+Tests (Vitest/Playwright coverage)
+
+📬 Contact
+Website: safeguardai.dev (placeholder)
+
+Email: founders@safeguardai.dev
