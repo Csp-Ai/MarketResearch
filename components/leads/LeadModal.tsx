@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 // Usage:
-// import LeadModal from '@/components/leads2/LeadModal';
+// import LeadModal from '@/components/leads/LeadModal';
 // <LeadModal />
 
 interface LeadForm {
@@ -25,7 +25,7 @@ export default function LeadModal() {
   } = useForm<LeadForm>();
 
   const onSubmit = async (data: LeadForm) => {
-    const res = await fetch('/api/leads2', {
+    const res = await fetch('/api/leads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
