@@ -20,7 +20,7 @@ if (!parsed.success) {
   throw new Error('Invalid environment variables');
 }
 
-export const env = parsed.data;
+  export const appEnv = parsed.data;
 const schema = z
   .object({
     DB_DRIVER: z.enum(['sqlite', 'memory']).default('sqlite'),
