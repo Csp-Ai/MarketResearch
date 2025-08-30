@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { track, flush } from '../../lib/telemetry/client';
-import { POST, events } from '../../app/api/telemetry2/route';
+import { POST } from '../../app/api/telemetry/route';
+import { events } from '../../lib/telemetry/events';
 import fs from 'fs';
 import path from 'path';
 
@@ -52,7 +53,7 @@ describe('telemetry route', () => {
   });
 
   it('writes events to ndjson', async () => {
-    const req = new Request('http://localhost/api/telemetry2', {
+    const req = new Request('http://localhost/api/telemetry', {
       method: 'POST',
       body: JSON.stringify({ event: 'api', props: { a: 1 }, ts: 1 }),
     });

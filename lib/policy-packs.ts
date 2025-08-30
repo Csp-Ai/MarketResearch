@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import Ajv from 'ajv';
-import schema from '../schemas/policy2.schema.json';
+import schema from '../schemas/policy.schema.json';
 
 export type PolicyRule = {
   id: string | number;

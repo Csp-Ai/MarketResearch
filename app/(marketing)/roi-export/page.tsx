@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import assumptions from '@/data/roi2/assumptions.json';
-import { calculateRoi } from '@/lib/roi2/calc';
+import assumptions from '@/data/roi/assumptions.json';
+import { calculateRoi } from '@/lib/roi/calc';
 
 export default function RoiExportPage() {
   const [inputs, setInputs] = useState({
@@ -20,7 +20,7 @@ export default function RoiExportPage() {
   const handleDownload = async () => {
     const assumptionsData = { ...inputs, secondsSavedPerPrompt: assumptions.secondsSavedPerPrompt };
     const outputs = calculateRoi(assumptionsData);
-    const res = await fetch('/api/roi2/pdf', {
+    const res = await fetch('/api/roi/pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ assumptions: assumptionsData, outputs }),

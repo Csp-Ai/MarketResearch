@@ -1,4 +1,4 @@
-import controls from "@/data/trust2/controls.json";
+import controls from "@/data/trust/controls.json";
 
 export default function CompliancePage() {
   return (

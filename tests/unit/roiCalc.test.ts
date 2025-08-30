@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateRoi } from '../../lib/roi2/calc';
+import { calculateRoi } from '../../lib/roi/calc';
 
 describe('calculateRoi', () => {
   it('computes ROI metrics', () => {
