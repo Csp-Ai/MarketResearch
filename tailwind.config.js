@@ -1,10 +1,10 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+const config = {
   content: [
     './app/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
     './lib/**/*.{ts,tsx}',
-    './store/**/*.{ts,tsx}'
+    './store/**/*.{ts,tsx}',
   ],
   darkMode: 'class',
   theme: {
@@ -21,10 +21,12 @@ export default {
           700: '#334155',
           800: '#1e293b',
           900: '#0f172a',
-          950: '#020617'
-        }
-      }
-    }
+          950: '#020617',
+        },
+      },
+    },
   },
-  plugins: []
+  plugins: [],
 };
+
+export default config;
