@@ -20,9 +20,14 @@ function writeBuffer(events: TelemetryEvent[]) {
 }
 
 async function send(ev: TelemetryEvent) {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const apiKey = process.env.NEXT_PUBLIC_TELEMETRY_API_KEY;
+  if (apiKey) {
+    headers['x-api-key'] = apiKey;
+  }
   await fetch('/api/telemetry2', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify(ev),
   });
 }
