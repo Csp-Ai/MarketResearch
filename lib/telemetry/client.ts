@@ -20,7 +20,7 @@ function writeBuffer(events: TelemetryEvent[]) {
 }
 
 async function send(ev: TelemetryEvent) {
-  await fetch('/api/telemetry2', {
+  await fetch('/api/telemetry', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(ev),
