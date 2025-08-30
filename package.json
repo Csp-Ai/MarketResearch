@@ -11,11 +11,15 @@
     "format:check": "prettier --check .",
     "env:check": "tsx lib/env.ts",
     "test": "vitest run tests/unit",
+    "lint": "next lint",
+    "test": "DB_DRIVER=memory vitest run tests/unit tests/api",
     "test:e2e": "npm run build && playwright test",
-    "build:ext": "tsc -p extension/tsconfig.json"
+    "build:ext": "tsc -p extension/tsconfig.json",
+    "retention": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/retention.ts"
   },
   "dependencies": {
     "ajv": "^8.17.1",
+    "better-sqlite3": "^9.6.0",
     "class-variance-authority": "^0.7.0",
     "framer-motion": "^11.3.13",
     "lucide-react": "^0.344.0",
@@ -39,9 +43,9 @@
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.5.3",
-    "vitest": "^1.6.0",
     "prettier": "^3.3.3",
     "eslint-config-prettier": "^9.1.0",
     "tsx": "^4.7.0"
+    "ts-node": "^10.9.2"
   }
 }

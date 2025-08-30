@@ -76,6 +76,24 @@ Load the extension in Chrome by enabling Developer Mode at `chrome://extensions`
 
 ---
 
+## 💾 Persistence
+The app uses a lightweight database adapter with two drivers:
+
+- **SQLite** (default): stores data in `.data/sgai.sqlite` with no external services.
+- **In-memory**: volatile fallback useful for tests or ephemeral environments.
+
+Switch drivers by setting `DB_DRIVER` in your environment. For SQLite, also set `DATABASE_URL`:
+
+```bash
+# .env
+DB_DRIVER=sqlite
+DATABASE_URL="file:.data/sgai.sqlite"
+```
+
+Set `DB_DRIVER=memory` to disable persistence.
+
+---
+
 ## 📊 Market Positioning
 SGAI addresses the "Shadow AI" risk where employees unknowingly leak sensitive data into LLMs.
 

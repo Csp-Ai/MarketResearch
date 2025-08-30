@@ -12,6 +12,7 @@ dist
 dist-ssr
 .next
 *.local
+.next
 
 # Editor directories and files
 .vscode/*
@@ -27,3 +28,5 @@ dist-ssr
 
 # Runtime data
 .data
+
+.logs
