@@ -2,7 +2,7 @@
 
 ## Secret Handling
 - All secrets stored in `.env`; file is gitignored.
-- `SUPABASE_SERVICE_ROLE_KEY` remains server‑side only.
+- `SUPABASE_SERVICE_ROLE_KEY` is rotated and kept server‑side only.
 - Rotate keys on compromise and never log full secrets.
 
 ## RLS / Authorization

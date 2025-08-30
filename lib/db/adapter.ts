@@ -1,6 +1,6 @@
 import type { Lead } from '../../schemas/lead';
 import type { TelemetryEvent } from '../../schemas/telemetry';
-import { env } from '../env';
+import { env } from '../env.server';
 import { createSqliteAdapter } from './drivers/sqlite';
 import { createMemoryAdapter } from './drivers/memory';
 
