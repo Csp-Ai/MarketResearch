@@ -4,6 +4,7 @@ import path from 'path';
 import type { DBAdapter } from '../adapter';
 import { LeadSchema } from '../../../schemas/lead';
 import { TelemetryEventSchema } from '../../../schemas/telemetry';
+import { TokenUsageSchema } from '../../../schemas/tokenUsage';
 
 export function createSqliteAdapter(url: string): DBAdapter {
   const file = url.replace('file:', '');
@@ -15,6 +16,9 @@ export function createSqliteAdapter(url: string): DBAdapter {
   ).run();
   db.prepare(
     'CREATE TABLE IF NOT EXISTS telemetry (id INTEGER PRIMARY KEY AUTOINCREMENT, event TEXT, props TEXT, ts INTEGER)'
+  ).run();
+  db.prepare(
+    'CREATE TABLE IF NOT EXISTS token_usage (id INTEGER PRIMARY KEY AUTOINCREMENT, analysisId TEXT, tokens INTEGER, ts INTEGER)'
   ).run();
 
   return {
@@ -29,6 +33,12 @@ export function createSqliteAdapter(url: string): DBAdapter {
       db.prepare(
         'INSERT INTO telemetry (event, props, ts) VALUES (?, ?, ?)'
       ).run(parsed.event, JSON.stringify(parsed.props ?? {}), parsed.ts);
+    },
+    async insertTokenUsage(usage) {
+      const parsed = TokenUsageSchema.parse(usage);
+      db.prepare(
+        'INSERT INTO token_usage (analysisId, tokens, ts) VALUES (?, ?, ?)'
+      ).run(parsed.analysisId, parsed.tokens, parsed.ts);
     },
   };
 }
