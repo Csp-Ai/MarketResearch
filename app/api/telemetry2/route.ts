@@ -8,11 +8,22 @@ export interface TelemetryEvent {
   ts: number;
 }
 
-export const events: TelemetryEvent[] = [];
+const events: TelemetryEvent[] = [];
 
 export async function POST(request: Request) {
   try {
+    const apiKey = process.env.TELEMETRY_API_KEY;
+    if (apiKey) {
+      const header = request.headers.get('x-api-key');
+      if (header !== apiKey) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+
     const { event, props = {}, ts = Date.now() } = await request.json();
+    if (!event) {
+      return NextResponse.json({ error: 'Missing event' }, { status: 400 });
+    }
     const payload: TelemetryEvent = { event, props, ts };
     events.push(payload);
 

@@ -8,10 +8,18 @@ interface Lead {
 }
 
 // In-memory storage for leads. Data resets on server restart.
-export const leads: Lead[] = [];
+const leads: Lead[] = [];
 
 export async function POST(request: Request) {
   try {
+    const apiKey = process.env.LEADS_API_KEY;
+    if (apiKey) {
+      const header = request.headers.get('x-api-key');
+      if (header !== apiKey) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+    }
+
     const { email, company, size, vertical } = await request.json();
     if (!email || !company || !size || !vertical) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });

@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "vitest run tests/unit",
+    "test": "npm run test:unit && if [ \"$E2E\" = \"1\" ]; then npm run test:e2e; fi",
+    "test:unit": "vitest run --coverage",
     "test:e2e": "npm run build && playwright test",
     "build:ext": "tsc -p extension/tsconfig.json"
   },
@@ -30,6 +31,7 @@
     "@types/node": "^20.10.6",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
+    "@vitest/coverage-v8": "^1.6.1",
     "autoprefixer": "^10.4.18",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.3",
