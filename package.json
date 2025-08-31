@@ -10,9 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "env:check": "tsx lib/env.ts",
-    "test": "vitest run tests/unit",
-    "lint": "next lint",
-    "test": "DB_DRIVER=memory vitest run tests/unit tests/api",
+    "test": "DB_DRIVER=memory npx -y vitest run tests/unit tests/api",
     "test:e2e": "npm run build && playwright test",
     "build:ext": "tsc -p extension/tsconfig.json",
     "retention": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/retention.ts"
@@ -45,7 +43,7 @@
     "typescript": "^5.5.3",
     "prettier": "^3.3.3",
     "eslint-config-prettier": "^9.1.0",
-    "tsx": "^4.7.0"
+    "tsx": "^4.7.0",
     "ts-node": "^10.9.2"
   }
 }
