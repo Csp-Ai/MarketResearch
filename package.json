@@ -17,6 +17,7 @@
     "build:ext": "tsc -p extension/tsconfig.json",
     "retention": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/retention.ts",
     "env:example:check": "tsx scripts/validate-env-example.ts"
+    "cost-report": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/cost-report.ts"
   },
   "dependencies": {
     "ajv": "^8.17.1",
@@ -48,5 +49,7 @@
     "eslint-config-prettier": "^9.1.0",
     "tsx": "^4.7.0",
     "ts-node": "^10.9.2"
+    }
+}
   }
 }
