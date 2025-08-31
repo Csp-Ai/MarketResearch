@@ -10,6 +10,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "env:check": "tsx lib/env.ts",
+    "test": "DB_DRIVER=memory npx -y vitest run tests/unit tests/api",
     "test": "DB_DRIVER=memory vitest run tests/unit tests/api",
     "test:e2e": "npm run build && playwright test",
     "build:ext": "tsc -p extension/tsconfig.json",
