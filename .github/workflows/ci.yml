@@ -32,6 +32,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - run: npm ci
+      - run: npm run env:example:check
       - run: npm run env:check
       - run: npm run lint
       - run: npm run format:check
@@ -54,6 +55,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - run: npm ci
+      - run: npm run env:example:check
       - run: npm run env:check
       - run: npm test -- --run
 
@@ -75,5 +77,6 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - run: npm ci
+      - run: npm run env:example:check
       - run: npm run env:check
       - run: npm run test:e2e

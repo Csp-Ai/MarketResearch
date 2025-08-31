@@ -16,6 +16,7 @@
     "test:e2e": "npm run build && playwright test",
     "build:ext": "tsc -p extension/tsconfig.json",
     "retention": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/retention.ts",
+    "env:example:check": "tsx scripts/validate-env-example.ts"
     "cost-report": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/cost-report.ts"
   },
   "dependencies": {
