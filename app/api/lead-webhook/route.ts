@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { appendFile, mkdir } from 'fs/promises';
 import path from 'path';
+import { containsServiceRoleKey } from '../../../lib/security';
 
 interface LeadPayload {
   name: string;
@@ -22,7 +23,11 @@ async function savePending(payload: LeadPayload) {
 
 export async function POST(request: Request) {
   try {
-    const { name, email, company, notes } = (await request.json()) as Partial<LeadPayload>;
+    const body = (await request.json()) as Partial<LeadPayload>;
+    if (containsServiceRoleKey(body)) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    }
+    const { name, email, company, notes } = body;
     if (!name || !email || !company || !notes || !isValidEmail(email)) {
       return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }

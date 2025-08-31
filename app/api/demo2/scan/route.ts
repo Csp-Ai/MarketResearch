@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { containsServiceRoleKey } from '@/lib/security';
 
 type Match = {
   type: string;
@@ -24,7 +25,11 @@ function luhnCheck(num: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const { text } = await req.json();
+  const body = await req.json();
+  if (containsServiceRoleKey(body)) {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
+  const { text } = body as { text: string };
   const matches: Match[] = [];
 
   const emailRegex = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
