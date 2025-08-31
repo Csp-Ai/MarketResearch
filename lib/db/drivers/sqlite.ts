@@ -11,7 +11,7 @@ export function createSqliteAdapter(url: string): DBAdapter {
   const db = new Database(file);
 
   db.prepare(
-    'CREATE TABLE IF NOT EXISTS leads (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, company TEXT, size TEXT, vertical TEXT)'
+    'CREATE TABLE IF NOT EXISTS leads (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, company TEXT, size TEXT, vertical TEXT, approved INTEGER DEFAULT 0)'
   ).run();
   db.prepare(
     'CREATE TABLE IF NOT EXISTS telemetry (id INTEGER PRIMARY KEY AUTOINCREMENT, event TEXT, props TEXT, ts INTEGER)'
@@ -21,8 +21,14 @@ export function createSqliteAdapter(url: string): DBAdapter {
     async insertLead(lead) {
       const parsed = LeadSchema.parse(lead);
       db.prepare(
-        'INSERT INTO leads (email, company, size, vertical) VALUES (?, ?, ?, ?)'
-      ).run(parsed.email, parsed.company, parsed.size, parsed.vertical);
+        'INSERT INTO leads (email, company, size, vertical, approved) VALUES (?, ?, ?, ?, ?)'
+      ).run(
+        parsed.email,
+        parsed.company,
+        parsed.size,
+        parsed.vertical,
+        parsed.approved ? 1 : 0
+      );
     },
     async insertTelemetry(event) {
       const parsed = TelemetryEventSchema.parse(event);
