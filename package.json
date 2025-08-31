@@ -15,7 +15,8 @@
     "test": "DB_DRIVER=memory vitest run tests/unit tests/api",
     "test:e2e": "npm run build && playwright test",
     "build:ext": "tsc -p extension/tsconfig.json",
-    "retention": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/retention.ts"
+    "retention": "ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/retention.ts",
+    "env:example:check": "tsx scripts/validate-env-example.ts"
   },
   "dependencies": {
     "ajv": "^8.17.1",
@@ -45,7 +46,7 @@
     "typescript": "^5.5.3",
     "prettier": "^3.3.3",
     "eslint-config-prettier": "^9.1.0",
-    "tsx": "^4.7.0"
+    "tsx": "^4.7.0",
     "ts-node": "^10.9.2"
   }
 }
