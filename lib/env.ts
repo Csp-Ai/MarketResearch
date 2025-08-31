@@ -10,6 +10,10 @@ const envSchema = z.object({
   LEAD_WEBHOOK_URL: z.string().url().optional(),
 });
 
+if (typeof window !== 'undefined' && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error('SUPABASE_SERVICE_ROLE_KEY should not be exposed to the client');
+}
+
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
@@ -20,7 +24,7 @@ if (!parsed.success) {
   throw new Error('Invalid environment variables');
 }
 
-export const env = parsed.data;
+  export const appEnv = parsed.data;
 const schema = z
   .object({
     DB_DRIVER: z.enum(['sqlite', 'memory']).default('sqlite'),
