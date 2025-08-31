@@ -5,6 +5,7 @@ export const LeadSchema = z.object({
   company: z.string().min(1),
   size: z.string().min(1),
   vertical: z.string().min(1),
+  approved: z.boolean().default(false),
 });
 
 export type Lead = z.infer<typeof LeadSchema>;
