@@ -31,5 +31,6 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - run: npm ci
+      - run: npm run env:example:check
       - run: npm run env:check
       - uses: github/codeql-action/analyze@v3

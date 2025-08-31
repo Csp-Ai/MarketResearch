@@ -28,6 +28,7 @@ describe('leads route', () => {
         company: 'Acme',
         size: '10',
         vertical: 'tech',
+        approved: true,
       }),
     });
     const res = await POST(req);
@@ -48,6 +49,20 @@ describe('leads route', () => {
     });
     const res = await POST(req);
     expect(res.status).toBe(400);
+  it('rejects unapproved lead', async () => {
+    const req = new Request('http://localhost/api/leads', {
+      method: 'POST',
+      body: JSON.stringify({
+        email: 'b@example.com',
+        company: 'Beta',
+        size: '20',
+        vertical: 'finance',
+        approved: false,
+      }),
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+    expect((db as any).leads.length).toBe(0);
   });
 });
 

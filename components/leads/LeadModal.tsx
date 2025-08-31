@@ -28,7 +28,7 @@ export default function LeadModal() {
     const res = await fetch('/api/leads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, approved: true }),
     });
     if (res.ok) {
       setSubmitted(true);
