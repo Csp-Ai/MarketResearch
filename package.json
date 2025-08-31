@@ -6,12 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --max-warnings=0",
+    "lint": "next lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "env:check": "tsx lib/env.ts",
-    "test": "vitest run tests/unit",
-    "lint": "next lint",
     "test": "DB_DRIVER=memory vitest run tests/unit tests/api",
     "test:e2e": "npm run build && playwright test",
     "build:ext": "tsc -p extension/tsconfig.json",
@@ -45,7 +43,8 @@
     "typescript": "^5.5.3",
     "prettier": "^3.3.3",
     "eslint-config-prettier": "^9.1.0",
-    "tsx": "^4.7.0"
-    "ts-node": "^10.9.2"
+    "tsx": "^4.7.0",
+    "ts-node": "^10.9.2",
+    "vitest": "^1.6.1"
   }
 }
