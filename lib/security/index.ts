@@ -26,3 +26,13 @@ export function jsonError(
   }
   return res;
 }
+
+export function containsServiceRoleKey(payload: unknown): boolean {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key) return false;
+  try {
+    return JSON.stringify(payload).includes(key);
+  } catch {
+    return false;
+  }
+}

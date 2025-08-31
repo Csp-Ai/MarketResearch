@@ -4,6 +4,16 @@ on:
   pull_request:
 
 jobs:
+  secret-scanning:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          args: detect --source=. --no-git -v
   lint:
     runs-on: ubuntu-latest
     env:
@@ -22,6 +32,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - run: npm ci
+      - run: npm run env:example:check
       - run: npm run env:check
       - run: npm run lint
       - run: npm run format:check
@@ -44,6 +55,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - run: npm ci
+      - run: npm run env:example:check
       - run: npm run env:check
       - run: npm test -- --run
 
@@ -65,5 +77,6 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
       - run: npm ci
+      - run: npm run env:example:check
       - run: npm run env:check
       - run: npm run test:e2e
